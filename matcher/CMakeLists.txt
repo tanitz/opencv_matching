@@ -51,17 +51,24 @@ target_link_libraries(templatematching_ctype ${OpenCV_LIBS})
 
 
 #安装规则
-install(TARGETS templatematching 
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-install(TARGETS templatematching_ctype 
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+# On Windows, DLLs are runtime artifacts; on UNIX, shared objects go to LIBDIR
+if(WIN32)
+    install(TARGETS templatematching templatematching_ctype
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+else()
+    install(TARGETS templatematching templatematching_ctype
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
 install(FILES 
     ${PROJECT_SOURCE_DIR}/include/matcher.h 
     ${PROJECT_SOURCE_DIR}/include/template_matching.h 
-	TYPE INCLUDE 
-	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 if(WIN32)
 install(FILES 

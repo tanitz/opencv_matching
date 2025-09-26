@@ -12,6 +12,20 @@ link_directories(${OPENCV_LIBRARY_DIRS})
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Install dir helpers (bindir/libdir/include, cross-platform)
+include(GNUInstallDirs)
+
+# Ensure binaries can locate installed/shared libs without LD_LIBRARY_PATH
+# - In build tree: embed RPATH to the matcher build dir
+# - In install tree: embed RUNPATH $ORIGIN/../lib
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# Where the shared libs live after installation
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+# Where the shared libs live in the build tree
+list(APPEND CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}/matcher")
+
 find_package( OpenMP REQUIRED)
 if(OPENMP_FOUND)
 message("OPENMP FOUND")

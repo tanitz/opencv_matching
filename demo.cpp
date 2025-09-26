@@ -79,9 +79,31 @@ int main(int argc, char** argv)
 	InitMD myGetMatcher;
 	myGetMatcher = (InitMD)GetProcAddress(handle, "GetMatcher");
 #else
-	// linux 动态加载dll
+	// linux 动态加载so，优先搜索常见的相对路径
 	void* handle = nullptr;
-	handle = dlopen("libtemplatematching.so", RTLD_LAZY); 
+	std::string exeDir;
+	try {
+		exeDir = fs::absolute(fs::path(argv[0])).parent_path().string();
+	} catch (...) {
+		exeDir = ".";
+	}
+	std::vector<std::string> candidates = {
+		"libtemplatematching.so",
+		exeDir + "/libtemplatematching.so",
+		exeDir + "/../lib/libtemplatematching.so",
+		exeDir + "/../matcher/libtemplatematching.so",
+		exeDir + "/../../matcher/libtemplatematching.so"
+	};
+
+	for (const auto &p : candidates)
+	{
+		handle = dlopen(p.c_str(), RTLD_LAZY);
+		if (handle != nullptr) {
+			std::cout << "Loaded libtemplatematching.so from: " << p << std::endl;
+			break;
+		}
+	}
+
 	if (handle == nullptr)
 	{
 		char *dlopenError = dlerror();
@@ -90,6 +112,7 @@ int main(int argc, char** argv)
 			std::cerr << "Error : " << dlopenError << std::endl;
 		}
 		std::cerr << "Error : failed to load libtemplatematching.so!" << std::endl;
+		std::cerr << "Hint: export LD_LIBRARY_PATH=\"" << exeDir << "/../lib:" << exeDir << "/../matcher\" and retry, or run from the install tree." << std::endl;
 		return -2;
 	}
 
