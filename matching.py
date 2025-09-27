@@ -418,8 +418,12 @@ def create_matcher_for_template(
     return m
 
 
-def run_match(matcher: Matcher, image: Union[str, np.ndarray]) -> Tuple[int, List[MatchResult]]:
-    """Run matcher on an image array or image file path and return (count, results list)."""
+def run_match(matcher: Matcher, image: Union[str, np.ndarray]) -> Tuple[int, List[MatchResult], List[Tuple[int, int]]]:
+    """Run matcher on an image array or image file path and return
+    (count, results list, centers list).
+
+    centers list contains integer (x, y) center coordinates for each valid result.
+    """
     if isinstance(image, str):
         img = load_image_gray(image)
         if img is None:
@@ -429,8 +433,11 @@ def run_match(matcher: Matcher, image: Union[str, np.ndarray]) -> Tuple[int, Lis
 
     count = matcher.match(img)
     if count < 0:
-        return count, []
-    return count, matcher.get_results(count)
+        return count, [], []
+
+    results = matcher.get_results(count)
+    centers = get_centers(results)
+    return count, results, centers
 
 
 def result_to_points(result: MatchResult) -> np.ndarray:
